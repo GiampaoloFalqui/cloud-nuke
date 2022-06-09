@@ -426,6 +426,20 @@ func GetAllResources(targetRegions []string, excludeAfter time.Time, resourceTyp
 		}
 		// End EBS Volumes
 
+		// EFS Volumes
+		efsVolumes := EFSInstances{}
+		if IsNukeable(efsVolumes.ResourceName(), resourceTypes) {
+			efsVolumeIds, err := getAllEfsVolumes(session, excludeAfter, configObj)
+			if err != nil {
+				return nil, errors.WithStackTrace(err)
+			}
+			if len(efsVolumeIds) > 0 {
+				efsVolumes.FileSystemIds = awsgo.StringValueSlice(efsVolumeIds)
+				resourcesInRegion.Resources = append(resourcesInRegion.Resources, efsVolumes)
+			}
+		}
+		// End EFS Volumes
+
 		// EIP Addresses
 		eipAddresses := EIPAddresses{}
 		if IsNukeable(eipAddresses.ResourceName(), resourceTypes) {
@@ -795,6 +809,7 @@ func ListResourceTypes() []string {
 		TransitGateways{}.ResourceName(),
 		EC2Instances{}.ResourceName(),
 		EBSVolumes{}.ResourceName(),
+		EFSInstances{}.ResourceName(),
 		EIPAddresses{}.ResourceName(),
 		AMIs{}.ResourceName(),
 		Snapshots{}.ResourceName(),
